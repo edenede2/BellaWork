@@ -33,7 +33,7 @@ st.dataframe(df)
 
 # --- Utility: extract numeric from strings like '3. нетрудно' -> 3
 def extract_numeric(cell_value):
-    match = re.search(r'\\d+', str(cell_value))
+    match = re.search(r'\d+', str(cell_value))
     return int(match.group(0)) if match else None
 
 # --- Identify columns for Q1..Q15, section1, section2, section3
