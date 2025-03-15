@@ -45,9 +45,26 @@ section3_cols = df.columns[45:57]  # AT-BE
 q_map = {old: f"שאלה_{i+1}" for i, old in enumerate(question_cols)}
 df.rename(columns=q_map, inplace=True)
 
-df_sections = {"מדד1": section1_cols, "מדד2": section2_cols, "מדד3": section3_cols}
+df_sections = {
+    "מדד1": section1_cols,
+    "מדד2": section2_cols,
+    "מדד3": section3_cols
+}
+
+# Build rename dictionary for sections
 for section_name, cols in df_sections.items():
-    df.rename(columns={old: f"{section_name}_{i+1}" for i, old in enumerate(cols)}, inplace=True)
+    rename_dict = {old: f"{section_name}_{i+1}" for i, old in enumerate(cols)}
+    df.rename(columns=rename_dict, inplace=True)
+
+# Now gather the *newly named* columns for questions and for all sections
+renamed_questions = list(q_map.values())  # e.g. ['שאלה_1', 'שאלה_2', ...]
+renamed_sections = []
+for section_name, cols in df_sections.items():
+    for i, old_col in enumerate(cols):
+        new_col = f"{section_name}_{i+1}"
+        renamed_sections.append(new_col)
+
+all_renamed_cols = renamed_questions + renamed_sections
 
 # Convert all question and section columns to numeric
 for col in list(q_map.values()) + list(df_sections.keys()):
