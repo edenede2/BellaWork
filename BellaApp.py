@@ -3,6 +3,8 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 import matplotlib.pyplot as plt
+import plotly.express as px
+
 
 st.set_page_config(page_title="Bella Work", layout="wide")
 
@@ -18,7 +20,6 @@ def load_data():
     sheet = spreadsheet.worksheet("Ответы на форму (1)")
     data = sheet.get_all_values()
     return data
-
 raw_data = load_data()
 header = raw_data[0]
 rows = raw_data[1:]
@@ -29,14 +30,23 @@ st.write("#### נתונים גולמיים")
 st.dataframe(df)
 
 # --- Rename columns for Q1..Q15 (columns O–AC) ---
-# Example (check exact indexing!)
+# *** IMPORTANT: verify these indices are correct! ***
 question_cols = df.columns[14:29]  # O..AC
 q_map = {old: f"שאלה_{i+1}" for i, old in enumerate(question_cols)}
 df.rename(columns=q_map, inplace=True)
 
+# -- DEBUG: Check which columns got renamed
+st.write("### Debug: Renamed Question Columns")
+st.write(question_cols)
+
 # Convert question columns to numeric
 for i in range(1, 16):
-    df[f"שאלה_{i}"] = pd.to_numeric(df[f"שאלה_{i}"], errors='coerce')
+    col_name = f"שאלה_{i}"
+    df[col_name] = pd.to_numeric(df[col_name], errors='coerce')
+
+# -- DEBUG: Check if numeric conversion worked
+st.write("### Debug: Questions After Conversion")
+st.dataframe(df[[f"שאלה_{i}" for i in range(1,16)]].head(10))
 
 # --- Calculate sums for the 3 patterns ---
 secure_questions   = [1,3,7,10,15]
@@ -57,34 +67,63 @@ df["סוג_תקשורת"] = df.apply(determine_pattern, axis=1)
 st.write("### תצוגה: סיווג סוג תקשורת")
 st.dataframe(df[["sum_secure","sum_avoidant","sum_ambiv","סוג_תקשורת"]])
 
-# --- Display a pie chart of distribution of communication patterns ---
+# --- PLOTLY Pie Chart for distribution of communication patterns ---
 st.write("### התפלגות סוגי תקשורת (תרשים עוגה)")
-fig, ax = plt.subplots()
-pattern_counts = df["סוג_תקשורת"].value_counts()
-ax.pie(pattern_counts, labels=pattern_counts.index, autopct='%1.1f%%')
-ax.set_title("אחוז סוגי תקשורת בקרב המשתתפים")
-st.pyplot(fig)
+pattern_counts = df["סוג_תקשורת"].value_counts().reset_index()
+pattern_counts.columns = ["סוג_תקשורת", "counts"]
+fig_pie = px.pie(
+    pattern_counts,
+    values="counts",
+    names="סוג_תקשורת",
+    title="אחוז סוגי תקשורת בקרב המשתתפים"
+)
+st.plotly_chart(fig_pie)
 
 # --- Summaries by communication pattern ---
 st.write("### סיכום סטטיסטי של שאלות לפי סוג תקשורת (ממוצע, סטיית תקן, כמות)")
-summary_questions = df.groupby("סוג_תקשורת")[[f"שאלה_{i}" for i in range(1,16)]].agg(['mean','std','count'])
+summary_questions = df.groupby("סוג_תקשורת")[
+    [f"שאלה_{i}" for i in range(1,16)]
+].agg(['mean','std','count'])
+
 st.dataframe(summary_questions)
 
-# --- Example bar chart of average for each question by pattern ---
+# --- Example bar chart of average for each question by pattern (Plotly) ---
 st.write("### ממוצעים בשאלות (תרשים עמודות)")
-avg_by_pattern = df.groupby("סוג_תקשורת")[[f"שאלה_{i}" for i in range(1,16)]].mean()
-for q in avg_by_pattern.columns:
-    fig_q, ax_q = plt.subplots()
-    avg_by_pattern[q].plot(kind='bar', ax=ax_q)
-    ax_q.set_title(f"ממוצע עבור {q} לפי סוג תקשורת")
-    ax_q.set_ylabel("ממוצע ניקוד")
-    ax_q.set_xlabel("סוג תקשורת")
-    st.pyplot(fig_q)
+avg_by_pattern = df.groupby("סוג_תקשורת")[
+    [f"שאלה_{i}" for i in range(1,16)]
+].mean()
+
+# Reshape for easier Plotly usage
+avg_by_pattern_long = avg_by_pattern.reset_index().melt(
+    id_vars="סוג_תקשורת",
+    var_name="שאלה",
+    value_name="ממוצע"
+)
+
+fig_bar = px.bar(
+    avg_by_pattern_long,
+    x="סוג_תקשורת",
+    y="ממוצע",
+    color="סוג_תקשורת",
+    facet_col="שאלה",
+    title="ממוצעים בשאלות לפי סוג תקשורת",
+    barmode="group"
+)
+# This will create multiple facet columns. If it's too wide, you can tweak or
+# facet by row, or just do a single chart at a time
+st.plotly_chart(fig_bar)
+
+# --- Example Scatter (sum_secure vs sum_avoidant) to see distribution ---
+st.write("### פיזור: סכום בטוחה מול סכום נמנעת")
+fig_scatter = px.scatter(
+    df, 
+    x="sum_secure", 
+    y="sum_avoidant",
+    color="סוג_תקשורת",
+    title="Scatter: סכומי שאלות בטוחה מול נמנעת"
+)
+st.plotly_chart(fig_scatter)
 
 # --- Similarly, rename and analyze section1, section2, section3 ---
-# Example below: check the actual column indexes
-section1_cols = df.columns[29:37]  # rename them to מדד1_1 ...
-# etc. Then do groupby summaries or create plots as needed
 
-st.write("### ניתוח לפי מדדים נוספים (מדד1, מדד2, מדד3), דוגמה...")
-# (Add your code similarly)
+st.write("### ניתוח לפי מדדים נוספים (מדד1, מדד2, מדד3) - לדוגמה")
