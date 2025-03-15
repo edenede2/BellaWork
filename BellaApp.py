@@ -72,6 +72,10 @@ for col in all_renamed_cols:
     df[col] = df[col].apply(extract_numeric)           # from str to int
     df[col] = pd.to_numeric(df[col], errors='coerce')  # ensure numeric
 
+# --- Display the cleaned data
+st.write("#### נתונים מעודכנים")
+st.dataframe(df)
+
 # =============================================================================
 #  Now that the columns are numeric, do your communication pattern logic
 # =============================================================================
