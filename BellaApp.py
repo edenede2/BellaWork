@@ -29,33 +29,38 @@ st.title("ניתוח שאלון תקשורת")
 st.write("#### נתונים גולמיים")
 st.dataframe(df)
 
-# --- Rename columns for Q1..Q15 (columns O–AC) ---
-# *** IMPORTANT: verify these indices are correct! ***
-question_cols = df.columns[14:29]  # O..AC
+# Function to extract numeric values from strings
+def extract_numeric(cell_value):
+    match = re.search(r'\d+', str(cell_value))
+    return int(match.group(0)) if match else None
+
+# Define column indices
+question_cols = df.columns[14:29]  # O-AC (Questions 1-15 for communication patterns)
+section1_cols = df.columns[29:37]  # AD-AK
+section2_cols = df.columns[37:45]  # AL-AS
+section3_cols = df.columns[45:57]  # AT-BE
+
+# Rename columns for clarity
 q_map = {old: f"שאלה_{i+1}" for i, old in enumerate(question_cols)}
 df.rename(columns=q_map, inplace=True)
 
-# -- DEBUG: Check which columns got renamed
-st.write("### Debug: Renamed Question Columns")
-st.write(question_cols)
+df_sections = {"מדד1": section1_cols, "מדד2": section2_cols, "מדד3": section3_cols}
+for section_name, cols in df_sections.items():
+    df.rename(columns={old: f"{section_name}_{i+1}" for i, old in enumerate(cols)}, inplace=True)
 
-# Convert question columns to numeric
-for i in range(1, 16):
-    col_name = f"שאלה_{i}"
-    df[col_name] = pd.to_numeric(df[col_name], errors='coerce')
+# Convert all question and section columns to numeric
+for col in list(q_map.values()) + list(df_sections.keys()):
+    df[col] = df[col].apply(extract_numeric)
+    df[col] = pd.to_numeric(df[col], errors='coerce')
 
-# -- DEBUG: Check if numeric conversion worked
-st.write("### Debug: Questions After Conversion")
-st.dataframe(df[[f"שאלה_{i}" for i in range(1,16)]].head(10))
+# Communication pattern calculation
+secure_questions = [1, 3, 7, 10, 15]
+avoidant_questions = [2, 4, 8, 12, 13]
+ambiv_questions = [5, 6, 9, 11, 14]
 
-# --- Calculate sums for the 3 patterns ---
-secure_questions   = [1,3,7,10,15]
-avoidant_questions = [2,4,8,12,13]
-ambiv_questions    = [5,6,9,11,14]
-
-df["sum_secure"]   = df[[f"שאלה_{q}" for q in secure_questions]].sum(axis=1)
+df["sum_secure"] = df[[f"שאלה_{q}" for q in secure_questions]].sum(axis=1)
 df["sum_avoidant"] = df[[f"שאלה_{q}" for q in avoidant_questions]].sum(axis=1)
-df["sum_ambiv"]    = df[[f"שאלה_{q}" for q in ambiv_questions]].sum(axis=1)
+df["sum_ambiv"] = df[[f"שאלה_{q}" for q in ambiv_questions]].sum(axis=1)
 
 def determine_pattern(row):
     vals = [row["sum_secure"], row["sum_avoidant"], row["sum_ambiv"]]
@@ -64,66 +69,39 @@ def determine_pattern(row):
 
 df["סוג_תקשורת"] = df.apply(determine_pattern, axis=1)
 
+# Display communication patterns
 st.write("### תצוגה: סיווג סוג תקשורת")
-st.dataframe(df[["sum_secure","sum_avoidant","sum_ambiv","סוג_תקשורת"]])
+st.dataframe(df[["sum_secure", "sum_avoidant", "sum_ambiv", "סוג_תקשורת"]])
 
-# --- PLOTLY Pie Chart for distribution of communication patterns ---
+# Pie Chart - Communication Pattern Distribution
 st.write("### התפלגות סוגי תקשורת (תרשים עוגה)")
 pattern_counts = df["סוג_תקשורת"].value_counts().reset_index()
 pattern_counts.columns = ["סוג_תקשורת", "counts"]
-fig_pie = px.pie(
-    pattern_counts,
-    values="counts",
-    names="סוג_תקשורת",
-    title="אחוז סוגי תקשורת בקרב המשתתפים"
-)
+fig_pie = px.pie(pattern_counts, values="counts", names="סוג_תקשורת", title="אחוז סוגי תקשורת בקרב המשתתפים")
 st.plotly_chart(fig_pie)
 
-# --- Summaries by communication pattern ---
+# Statistical Summary by Communication Pattern
 st.write("### סיכום סטטיסטי של שאלות לפי סוג תקשורת (ממוצע, סטיית תקן, כמות)")
-summary_questions = df.groupby("סוג_תקשורת")[
-    [f"שאלה_{i}" for i in range(1,16)]
-].agg(['mean','std','count'])
-
+summary_questions = df.groupby("סוג_תקשורת")[[f"שאלה_{i}" for i in range(1, 16)]].agg(['mean', 'std', 'count'])
 st.dataframe(summary_questions)
 
-# --- Example bar chart of average for each question by pattern (Plotly) ---
+# Bar Chart of Average Scores by Question
 st.write("### ממוצעים בשאלות (תרשים עמודות)")
-avg_by_pattern = df.groupby("סוג_תקשורת")[
-    [f"שאלה_{i}" for i in range(1,16)]
-].mean()
+avg_by_pattern = df.groupby("סוג_תקשורת")[[f"שאלה_{i}" for i in range(1, 16)]].mean()
 
-# Reshape for easier Plotly usage
-avg_by_pattern_long = avg_by_pattern.reset_index().melt(
-    id_vars="סוג_תקשורת",
-    var_name="שאלה",
-    value_name="ממוצע"
-)
-
-fig_bar = px.bar(
-    avg_by_pattern_long,
-    x="סוג_תקשורת",
-    y="ממוצע",
-    color="סוג_תקשורת",
-    facet_col="שאלה",
-    title="ממוצעים בשאלות לפי סוג תקשורת",
-    barmode="group"
-)
-# This will create multiple facet columns. If it's too wide, you can tweak or
-# facet by row, or just do a single chart at a time
+df_long = avg_by_pattern.reset_index().melt(id_vars="סוג_תקשורת", var_name="שאלה", value_name="ממוצע")
+fig_bar = px.bar(df_long, x="סוג_תקשורת", y="ממוצע", color="סוג_תקשורת", facet_col="שאלה", title="ממוצעים בשאלות לפי סוג תקשורת", barmode="group")
 st.plotly_chart(fig_bar)
 
-# --- Example Scatter (sum_secure vs sum_avoidant) to see distribution ---
+# Scatter Plot - Secure vs Avoidant
 st.write("### פיזור: סכום בטוחה מול סכום נמנעת")
-fig_scatter = px.scatter(
-    df, 
-    x="sum_secure", 
-    y="sum_avoidant",
-    color="סוג_תקשורת",
-    title="Scatter: סכומי שאלות בטוחה מול נמנעת"
-)
+fig_scatter = px.scatter(df, x="sum_secure", y="sum_avoidant", color="סוג_תקשורת", title="Scatter: סכומי שאלות בטוחה מול נמנעת")
 st.plotly_chart(fig_scatter)
 
-# --- Similarly, rename and analyze section1, section2, section3 ---
+# Statistical Summary for Additional Sections
+for section_name in df_sections.keys():
+    st.write(f"### סיכום סטטיסטי עבור {section_name}")
+    summary_sec = df.groupby("סוג_תקשורת")[list(df_sections[section_name])].agg(['mean', 'std', 'count'])
+    st.dataframe(summary_sec)
 
 st.write("### ניתוח לפי מדדים נוספים (מדד1, מדד2, מדד3) - לדוגמה")
