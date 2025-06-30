@@ -157,6 +157,11 @@ col1, col2, col3 = st.columns(3)
 
 # with col1:
 st.write("#### BAOS - סיכום")
+renamed_cols = [f"BAOS_{i+1}" for i in range(len(section1_cols))]
+summary_baos = df.groupby("סוג_תקשורת")[renamed_cols].agg(['mean', 'std', 'count'])
+summary_baos.columns = [f"BAOS_{i+1}" for i in range(len(section1_cols))]
+summary_baos = summary_baos.reset_index()
+st.dataframe(summary_baos)
 df_baos = df.groupby("סוג_תקשורת")[section1_cols].agg(['mean', 'std', 'count'])
 df_baos.columns = [f"BAOS_{i+1}" for i in range(len(section1_cols))]
 df_baos = df_baos.reset_index()
