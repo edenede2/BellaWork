@@ -159,12 +159,12 @@ with col1:
     st.write("#### BAOS - סיכום")
     # group by communication type and summarize BAOS section
     df[[f"BAOS_{i+1}" for i in range(len(section1_cols))]] = df[[f"BAOS_{i+1}" for i in range(len(section1_cols))]].apply(pd.to_numeric, errors='coerce')
-    st.dataframe(df[[f"BAOS_{i+1}" for i in range(len(section1_cols))]].describe())
+    st.dataframe(df[[f"BAOS_{i+1}" for i in range(len(section1_cols))]].describe().T)
 
 with col2:
     st.write("#### BPAS - סיכום")
-    df[[f"BPAS_{i+1}" for i in range(len(section2_cols))]] = df[[f"BPAS_{i+1}" for i in range(len(section2_cols))]].apply(pd.to_numeric, errors='coerce')   
-    st.dataframe(df[[f"BPAS_{i+1}" for i in range(len(section2_cols))]].describe())
+    df[[f"BPAS_{i+1}" for i in range(len(section2_cols))]] = df[[f"BPAS_{i+1}" for i in range(len(section2_cols))]].apply(pd.to_numeric, errors='coerce')
+    st.dataframe(df[[f"BPAS_{i+1}" for i in range(len(section2_cols))]].describe().T)
 
 with col3:
     st.write("#### BSAS - סיכום")
