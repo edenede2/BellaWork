@@ -135,6 +135,13 @@ st.write("### סיכום סטטיסטי לשאלות (1–15) לפי תקשור�
 
 question_cols_renamed = [f"שאלה_{i}" for i in range(1,16)]
 summary_questions = df.groupby("סוג_תקשורת")[question_cols_renamed].agg(['mean','std','count'])
+# Change the metrics columns to hebrew
+map = (
+    {'mean': 'ממוצע',
+     'std': 'סטיית תקן',
+     'count': 'ספירה'}
+)
+summary_questions = summary_questions.rename(columns=map)
 st.dataframe(summary_questions)
 
 # Summaries of each section by group
