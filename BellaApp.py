@@ -129,7 +129,10 @@ st.dataframe(df[section_totals + ["סוג_תקשורת"]].head(10))
 # =============================================================================
 #  Basic Summaries & Plots
 # =============================================================================
+st.markdown("## ASQ - סיכום סטטיסטי ותרשימים")
+
 st.write("### סיכום סטטיסטי לשאלות (1–15) לפי תקשורת")
+
 question_cols_renamed = [f"שאלה_{i}" for i in range(1,16)]
 summary_questions = df.groupby("סוג_תקשורת")[question_cols_renamed].agg(['mean','std','count'])
 st.dataframe(summary_questions)
