@@ -172,12 +172,12 @@ with col3:
     st.dataframe(df[[f"BSAS_{i+1}" for i in range(len(section3_cols))]].describe().T)
 
 
-for section_name, original_cols in df_sections.items():
+# for section_name, original_cols in df_sections.items():
 
-    renamed_cols = [f"{section_name}_{i+1}" for i in range(len(original_cols))]
-    summary_sec = df.groupby("סוג_תקשורת")[renamed_cols].agg(['mean','std','count'])
-    st.write(f"#### {section_name}")
-    st.dataframe(summary_sec)
+#     renamed_cols = [f"{section_name}_{i+1}" for i in range(len(original_cols))]
+#     summary_sec = df.groupby("סוג_תקשורת")[renamed_cols].agg(['mean','std','count'])
+#     st.write(f"#### {section_name}")
+#     st.dataframe(summary_sec)
 
 # =============================================================================
 #  PLOTS
