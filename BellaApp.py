@@ -169,7 +169,7 @@ with col2:
 with col3:
     st.write("#### BSAS - סיכום")
     df[[f"BSAS_{i+1}" for i in range(len(section3_cols))]] = df[[f"BSAS_{i+1}" for i in range(len(section3_cols))]].apply(pd.to_numeric, errors='coerce')
-    st.dataframe(df[[f"BSAS_{i+1}" for i in range(len(section3_cols))]].describe())
+    st.dataframe(df[[f"BSAS_{i+1}" for i in range(len(section3_cols))]].describe().T)
 
 
 for section_name, original_cols in df_sections.items():
