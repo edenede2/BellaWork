@@ -137,11 +137,13 @@ question_cols_renamed = [f"שאלה_{i}" for i in range(1,16)]
 summary_questions = df.groupby("סוג_תקשורת")[question_cols_renamed].agg(['mean','std','count'])
 # Change the metrics columns to hebrew
 map = (
-    {'mean': 'ממוצע',
-     'std': 'סטיית תקן',
-     'count': 'ספירה'}
+    {['mean', 'שאלה_' + str(i)]: 'ממוצע_שאלה_' + str(i) for i in range(1, 16)} |
+    {['std', 'שאלה_' + str(i)]: 'סטיית_תקן_שאלה_' + str(i) for i in range(1, 16)} |
+    {['count', 'שאלה_' + str(i)]: 'ספירת_שאלה_' + str(i) for i in range(1, 16)}
 )
-summary_questions = summary_questions.rename(columns=map)
+summary_questions = summary_questions.rename(columns=lambda x: map.get(tuple(x), x) if isinstance(x, tuple) else x)
+
+# summary_questions = summary_questions.rename(columns=map)
 st.dataframe(summary_questions)
 
 # Summaries of each section by group
