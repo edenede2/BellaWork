@@ -152,6 +152,18 @@ st.dataframe(summary_questions)
 
 # Summaries of each section by group
 st.write("### Ceriterion Summaries")
+# Generate columns for each criterion section
+columns = st.columns(len(df_sections))
+df_sections = {k: v for k, v in df_sections.items() if k in section_totals}
+for i, (section_name, original_cols) in enumerate(df_sections.items()):
+    with columns[i]:
+        st.write(f"#### {section_name} - סיכום")
+        renamed_cols = [f"{section_name}_{i+1}" for i in range(len(original_cols))]
+        summary_sec = df.groupby("סוג_תקשורת")[renamed_cols].agg(['mean', 'std', 'count'])
+        st.dataframe(summary_sec)
+
+
+
 for section_name, original_cols in df_sections.items():
 
     renamed_cols = [f"{section_name}_{i+1}" for i in range(len(original_cols))]
