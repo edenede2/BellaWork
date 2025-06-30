@@ -134,7 +134,7 @@ st.markdown("## ASQ - סיכום סטטיסטי ותרשימים")
 st.write("### סיכום סטטיסטי לשאלות (1–15) לפי תקשורת")
 
 question_cols_renamed = [f"שאלה_{i}" for i in range(1,16)]
-summary_questions = df.groupby("סוג_תקשורת")[question_cols_renamed].agg(['mean','std','count'])
+summary_questions = df.groupby("סוג_תקשורת")[question_cols_renamed].agg(['mean','std','count']).T
 # Change the metrics columns to hebrew
 column_mapping = {
     ('mean', 'שאלה_' + str(i)): 'ממוצע_שאלה_' + str(i) for i in range(1, 16)
