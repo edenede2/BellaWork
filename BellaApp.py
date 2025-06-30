@@ -155,11 +155,11 @@ st.write("### Ceriterion Summaries")
 # Generate columns for each criterion section
 col1, col2, col3 = st.columns(3)
 
-# with col1:
-st.write("#### BAOS - סיכום")
-df_baos = df.groupby("סוג_תקשורת")[section1_cols].agg(['mean', 'std', 'count'])
-df_baos.columns = [f"BAOS_{i+1}" for i in range(len(section1_cols))]
-df_baos = df_baos.reset_index()
+# # with col1:
+# st.write("#### BAOS - סיכום")
+# df_baos = df.groupby("סוג_תקשורת")[section1_cols].agg(['mean', 'std', 'count'])
+# df_baos.columns = [f"BAOS_{i+1}" for i in range(len(section1_cols))]
+# df_baos = df_baos.reset_index()
 
 
 # group by communication type and summarize BAOS section
