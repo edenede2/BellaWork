@@ -49,9 +49,9 @@ df.rename(columns=q_map, inplace=True)
 
 # --- Rename the section columns to מדד1_1.., מדד2_1.., מדד3_1..
 df_sections = {
-    "מדד1": section1_cols,
-    "מדד2": section2_cols,
-    "מדד3": section3_cols
+    "BAOS": section1_cols,
+    "BPAS": section2_cols,
+    "BSAS": section3_cols
 }
 for section_name, cols in df_sections.items():
     rename_dict = {old: f"{section_name}_{i+1}" for i, old in enumerate(cols)}
@@ -151,8 +151,9 @@ summary_questions = summary_questions.rename(columns=lambda x: column_mapping.ge
 st.dataframe(summary_questions)
 
 # Summaries of each section by group
-st.write("### סיכום סטטיסטי עבור כל מדד לפי תקשורת")
+st.write("### Ceriterion Summaries")
 for section_name, original_cols in df_sections.items():
+
     renamed_cols = [f"{section_name}_{i+1}" for i in range(len(original_cols))]
     summary_sec = df.groupby("סוג_תקשורת")[renamed_cols].agg(['mean','std','count'])
     st.write(f"#### {section_name}")
