@@ -157,10 +157,9 @@ col1, col2, col3 = st.columns(3)
 
 # with col1:
 st.write("#### BAOS - סיכום")
-
-# group df by communication type and summarize BAOS section
-df_baos = df.groupby("סוג_תקשורת")[[f"BAOS_{i+1}" for i in range(len(section1_cols))]].agg(['mean', 'std', 'count'])
-df_baos.columns = [f"{col[0]}_{col[1]}" for col in df_baos.columns]
+df_baos = df.groupby("סוג_תקשורת")[section1_cols].agg(['mean', 'std', 'count'])
+df_baos.columns = [f"BAOS_{i+1}" for i in range(len(section1_cols))]
+df_baos = df_baos.reset_index()
 st.dataframe(df_baos)
 
 
